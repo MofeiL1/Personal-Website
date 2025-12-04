@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mofei Li | Interactive Audio Designer</title>
+    
+    <!-- 1. 引入 React 和 ReactDOM (锁定版本) -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    
+    <!-- 2. 引入 Prop-types (Recharts 依赖) -->
+    <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
+
+    <!-- 3. 引入 Recharts (锁定稳定版本 2.12.0) -->
+    <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.js"></script>
+
+    <!-- 4. 引入 Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- 5. 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- 字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+
+    <script>
+      // 全局错误捕获，如果黑屏会弹窗提示
+      window.onerror = function(message, source, lineno, colno, error) {
+        document.getElementById('loading-text').innerHTML = 
+            '<span style="color:red">Error: ' + message + '</span><br><span style="font-size:12px;color:#666">Check console for details. Make sure you have Internet access to load CDNs.</span>';
+      };
+
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Outfit', 'sans-serif'],
+              mono: ['Space Grotesk', 'monospace'],
+            },
+            colors: {
+              brand: {
+                dark: '#0a0a0a',
+                accent: '#00f2ea',
+                secondary: '#ff0055',
+                surface: '#171717',
+              }
+            },
+            animation: {
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'fadeIn': 'fadeIn 1s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #0a0a0a; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
+      body { background-color: #0a0a0a; color: #e5e7eb; }
+      
+      /* 加载动画样式 */
+      #loading {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #0a0a0a; color: #00f2ea; display: flex; 
+        justify-content: center; align-items: center; font-family: monospace;
+        z-index: 9999; flex-direction: column;
+      }
+    </style>
+</head>
+<body class="antialiased selection:bg-brand-accent selection:text-black">
+    
+    <!-- 初始加载界面 (React 挂载后会覆盖这个) -->
+    <div id="root">
+        <div id="loading">
+            <div id="loading-text" class="animate-pulse">INITIALIZING SYSTEM...</div>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        // 确保所有依赖已加载
+        if (!window.React || !window.Recharts) {
+            throw new Error("External libraries failed to load. Please check your internet connection.");
+        }
+
+        const { useState, useEffect, useRef } = React;
+        const { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } = Recharts;
+
+        // --- Constants ---
+        const PERSONAL_INFO = {
+            name: "Mofei Li",
+            chineseName: "李墨非",
+            title: "Interactive Audio Designer",
+            email: "mofei_li@qq.com",
+            location: "Berklee College of Music / Shenzhen",
+            taglines: [
+                "Crafting sound and stories for worlds that don’t exist yet.",
+                "Sounds that respond. Music that adapts. Worlds that breathe.",
+                "The future of storytelling is interactive — and so is the music behind it."
+            ]
+        };
+
+        const LINKS = {
+            portfolio: "https://mli13.myportfolio.com/",
+            github: "https://github.com/MofeiL1",
+            linkedin: "https://www.linkedin.com/in/墨非-李-13283b2b0"
+        };
+
+        const PROFILE_MODES = [
+            {
+                id: 'pro',
+                label: 'Overview',
+                title: 'Game & Interactive Audio Designer',
+                icon: 'briefcase',
+                content: `Hi, I’m Mofei — a Game & Interactive Audio Designer studying at Berklee College of Music. I design adaptive music, spatial sound, and immersive sonic experiences for games, VR, and beyond. I believe audio shouldn’t just decorate a scene — it should drive emotion, react to players, and shape the world itself. I possess a highly sensitive ear (perfect pitch), high-level perfectionism, and extensive project management experience.`
+            },
+            {
+                id: 'tech',
+                label: 'Technical',
+                title: 'Systems & Implementation',
+                icon: 'code',
+                content: `I build sound systems for interactive worlds. Using Wwise, Unity, spatial audio, and audio programming tools, I craft music that evolves and environments that speak. From VR soundscapes to hybrid orchestral-electronic scores, my work sits at the intersection of engineering and imagination. I bridge the gap between musicians and programmers with a deep understanding of C#, Python, and AI integration.`
+            },
+            {
+                id: 'story',
+                label: 'Narrative',
+                title: 'The Invisible Storyteller',
+                icon: 'book',
+                content: `I chase the invisible layer of storytelling: sound. I sculpt emotion from silence, create places with reverberation, and make virtual characters breathe through audio. Wherever new media emerges — I’m there to give it a voice. My primary instrument is the Electric Guitar, bringing a human touch to digital landscapes.`
+            }
+        ];
+
+        const SKILL_DATA = [
+            { subject: 'Interactive Audio', A: 98, fullMark: 100 },
+            { subject: 'Game Dev (Unity/C#)', A: 85, fullMark: 100 },
+            { subject: 'Composition', A: 90, fullMark: 100 },
+            { subject: 'Programming (Py/JS)', A: 80, fullMark: 100 },
+            { subject: 'Visual/UI Design', A: 75, fullMark: 100 },
+            { subject: 'Project Mgmt', A: 88, fullMark: 100 },
+        ];
+
+        const SKILL_LIST = {
+            audio: ["Wwise", "FMOD", "Logic Pro", "Cubase", "Pro Tools", "Spatial Audio", "Synthesizers"],
+            dev: ["Unity", "C#", "Python", "JavaScript", "Swift", "Git", "Docker", "Ollama", "ComfyUI"],
+            design: ["Figma", "Photoshop", "Premiere Pro", "DaVinci Resolve", "UI/UX"],
+            general: ["Project Management", "Bilingual (EN/CN)", "Creative Problem Solving", "Electric Guitar"]
+        };
+
+        const PHILOSOPHY = [
+            { en: "I believe music should participate in the narrative, not just follow it.", cn: "我相信音乐应该参与叙事，而不是跟随叙事。" },
+            { en: "Sound defines space. Space reacts to sound.", cn: "声音可以定义空间。空间也会反应声音。" },
+            { en: "Every player choice is a new soundtrack.", cn: "每一次用户的选择，都是一段新的配乐。" },
+            { en: "Technology is not a limit, but an extension of imagination.", cn: "技术不是限制，而是想象力的延伸。" },
+            { en: "Future media isn't watched — it's entered.", cn: "未来的作品不是观看 —— 而是进入。" }
+        ];
+
+        const HIGHLIGHTS = [
+            {
+                title: "Adaptive & Interactive Music",
+                role: "Composer / Implementer",
+                description: "Composing and implementing dynamic scores driven by gameplay logic. Creating non-linear musical structures that respond to intensity and player states.",
+                tech: ["Wwise", "Vertical Layering", "Horizontal Resequencing"]
+            },
+            {
+                title: "VR & Spatial Audio Design",
+                role: "Sound Designer",
+                description: "Crafting believable environments with binaural, Ambisonics, and object-based techniques. Focusing on depth perception and immersion.",
+                tech: ["Unity", "Oculus SDK", "Ambisonics"]
+            },
+            {
+                title: "Project Management",
+                role: "Audio Producer / PM",
+                description: "Participated in student projects as Audio Producer, and served as Production Manager (Project Management) in Doujin music circles. Skilled in cross-disciplinary communication and scheduling.",
+                tech: ["Agile", "Asset Pipeline", "Team Coordination", "Documentation"]
+            },
+            {
+                title: "Creative Tech & AI",
+                role: "Researcher / Developer",
+                description: "Building tools, prototyping interaction systems, and experimenting with AI to augment creative workflows. Leveraging local LLMs and diffusion models.",
+                tech: ["Python", "Stable Diffusion", "Generative AI"]
+            }
+        ];
+
+        // --- Icons ---
+        const Icons = {
+            Briefcase: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>,
+            Code: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
+            Book: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
+            Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
+            Mail: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>,
+            ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+            Github: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>,
+            Linkedin: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+        };
+
+        // --- Visualizer Component ---
+        const Visualizer = () => {
+            const canvasRef = useRef(null);
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                let animationFrameId;
+                let width = canvas.width = window.innerWidth;
+                let height = canvas.height = 400;
+
+                const bars = 60;
+                const barWidth = width / bars;
+                
+                // Simulate audio data
+                const data = new Array(bars).fill(0).map(() => Math.random() * 100);
+
+                const render = () => {
+                    ctx.clearRect(0, 0, width, height);
+                    ctx.fillStyle = '#0a0a0a'; 
+                    ctx.fillRect(0, 0, width, height);
+
+                    for (let i = 0; i < bars; i++) {
+                        const target = Math.random() * (height * 0.5);
+                        data[i] += (target - data[i]) * 0.1;
+
+                        const x = i * barWidth;
+                        const barHeight = data[i];
+                        
+                        const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
+                        gradient.addColorStop(0, '#00f2ea'); 
+                        gradient.addColorStop(1, 'rgba(0, 242, 234, 0.1)');
+
+                        ctx.fillStyle = gradient;
+                        
+                        ctx.beginPath();
+                        
+                        // Fallback for browsers that don't support roundRect
+                        if (ctx.roundRect) {
+                            ctx.roundRect(x + 2, height - barHeight - (height * 0.2), barWidth - 4, barHeight, 4);
+                        } else {
+                            ctx.rect(x + 2, height - barHeight - (height * 0.2), barWidth - 4, barHeight);
+                        }
+                        
+                        ctx.fill();
+                        
+                        ctx.globalAlpha = 0.2;
+                        ctx.fillRect(x + 2, height - (height * 0.2), barWidth - 4, barHeight * 0.3);
+                        ctx.globalAlpha = 1.0;
+                    }
+
+                    animationFrameId = window.requestAnimationFrame(render);
+                };
+
+                render();
+
+                const handleResize = () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = 400;
+                };
+
+                window.addEventListener('resize', handleResize);
+
+                return () => {
+                    window.cancelAnimationFrame(animationFrameId);
+                    window.removeEventListener('resize', handleResize);
+                };
+            }, []);
+
+            return (
+                <canvas 
+                    ref={canvasRef} 
+                    className="absolute bottom-0 left-0 w-full h-[50vh] opacity-40 pointer-events-none mix-blend-screen"
+                />
+            );
+        };
+
+        // --- SkillsRadar Component ---
+        const SkillsRadar = () => {
+            return (
+                <div className="w-full h-[400px] text-xs font-mono">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={SKILL_DATA}>
+                            <PolarGrid stroke="#333" />
+                            <PolarAngleAxis 
+                                dataKey="subject" 
+                                tick={{ fill: '#9ca3af', fontSize: 12 }} 
+                            />
+                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                            <Radar
+                                name="Skill Level"
+                                dataKey="A"
+                                stroke="#00f2ea"
+                                strokeWidth={3}
+                                fill="#00f2ea"
+                                fillOpacity={0.2}
+                            />
+                            <Tooltip 
+                                contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', color: '#fff' }}
+                                itemStyle={{ color: '#00f2ea' }}
+                            />
+                        </RadarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        function App() {
+            const [activeMode, setActiveMode] = useState(PROFILE_MODES[0]);
+            const [scrolled, setScrolled] = useState(false);
+
+            useEffect(() => {
+                const handleScroll = () => {
+                    setScrolled(window.scrollY > 50);
+                };
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-brand-dark text-gray-200 font-sans">
+                    {/* Navigation */}
+                    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${scrolled ? 'bg-brand-dark/90 backdrop-blur-md border-gray-800 py-3' : 'bg-transparent border-transparent py-6'}`}>
+                        <div className="container mx-auto px-6 flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 bg-brand-accent rounded-full animate-pulse-slow"></div>
+                                <span className="font-mono font-bold text-xl tracking-tighter">MOFEI.AUDIO</span>
+                            </div>
+                            <a 
+                                href={`mailto:${PERSONAL_INFO.email}`} 
+                                className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-full hover:border-brand-accent hover:text-brand-accent transition-colors text-sm font-mono"
+                            >
+                                <Icons.Mail />
+                                <span>CONTACT</span>
+                            </a>
+                        </div>
+                    </nav>
+
+                    {/* Hero Section */}
+                    <header className="relative h-screen flex flex-col justify-center items-center overflow-hidden pt-20">
+                        <Visualizer />
+                        
+                        <div className="z-10 text-center px-6 max-w-5xl flex flex-col items-center">
+                            
+                            <div className="mb-8 relative group cursor-pointer">
+                                <div className="absolute -inset-1 bg-gradient-to-r from-brand-accent to-brand-secondary opacity-30 blur-lg rounded-2xl group-hover:opacity-60 transition duration-500"></div>
+                                <img 
+                                    src="./profile.jpg" 
+                                    alt="Mofei Li" 
+                                    onError={(e) => {
+                                        e.target.style.display='none'; 
+                                        const fallback = document.createElement('div');
+                                        fallback.className = "w-40 h-40 bg-gray-800 rounded-2xl flex items-center justify-center border-2 border-brand-accent text-brand-accent font-mono font-bold";
+                                        fallback.innerText = "NO IMG";
+                                        e.target.parentElement.appendChild(fallback);
+                                    }}
+                                    className="relative w-40 h-40 md:w-56 md:h-56 rounded-2xl object-cover border-4 border-black shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 ease-out"
+                                />
+                            </div>
+
+                            <p className="text-brand-accent font-mono mb-4 tracking-widest text-sm md:text-base uppercase opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
+                                {PERSONAL_INFO.location}
+                            </p>
+                            <h1 className="text-5xl md:text-8xl font-bold mb-6 tracking-tight leading-tight mix-blend-difference">
+                                {PERSONAL_INFO.name}
+                                <span className="block text-gray-500 text-3xl md:text-5xl mt-2 font-light">
+                                    {PERSONAL_INFO.chineseName}
+                                </span>
+                            </h1>
+                            <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-light leading-relaxed mb-8">
+                                {PERSONAL_INFO.taglines[0]}
+                            </p>
+                            
+                            <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
+                                <a 
+                                    href={LINKS.portfolio}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="px-8 py-3 bg-brand-accent text-black font-bold rounded-full hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(0,242,234,0.3)]"
+                                >
+                                    <Icons.Play />
+                                    PORTFOLIO
+                                </a>
+                                <a 
+                                    href="#projects" 
+                                    className="px-8 py-3 border border-gray-700 text-gray-300 font-bold rounded-full hover:border-white hover:text-white transition-colors"
+                                >
+                                    CAPABILITIES
+                                </a>
+                            </div>
+
+                            <div className="mt-8 flex gap-6 text-gray-500">
+                                <a href={LINKS.github} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors p-2"><Icons.Github /></a>
+                                <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors p-2"><Icons.Linkedin /></a>
+                            </div>
+                        </div>
+
+                        <div className="absolute bottom-10 animate-bounce text-gray-500">
+                            <Icons.ChevronDown />
+                        </div>
+                    </header>
+
+                    {/* About / Identity Selector */}
+                    <section className="py-24 bg-brand-surface relative border-t border-gray-800">
+                        <div className="container mx-auto px-6">
+                            <div className="flex flex-col lg:flex-row gap-16 items-start">
+                                
+                                {/* Mode Selector */}
+                                <div className="w-full lg:w-1/3 space-y-4 sticky top-32">
+                                    <h2 className="text-sm font-mono text-gray-500 mb-6 uppercase tracking-widest">Select Identity Profile</h2>
+                                    {PROFILE_MODES.map((mode) => (
+                                        <button
+                                            key={mode.id}
+                                            onClick={() => setActiveMode(mode)}
+                                            className={`w-full text-left p-6 rounded-xl border transition-all duration-300 group flex items-center gap-4 ${
+                                                activeMode.id === mode.id 
+                                                    ? 'bg-brand-dark border-brand-accent shadow-[0_0_30px_rgba(0,242,234,0.1)]' 
+                                                    : 'bg-transparent border-gray-800 hover:border-gray-600'
+                                            }`}
+                                        >
+                                            <div className={`p-3 rounded-full ${activeMode.id === mode.id ? 'bg-brand-accent text-black' : 'bg-gray-800 text-gray-400'}`}>
+                                                {mode.icon === 'briefcase' && <Icons.Briefcase />}
+                                                {mode.icon === 'code' && <Icons.Code />}
+                                                {mode.icon === 'book' && <Icons.Book />}
+                                            </div>
+                                            <div>
+                                                <h3 className={`font-bold ${activeMode.id === mode.id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>{mode.label}</h3>
+                                                <p className="text-xs text-gray-500 font-mono mt-1">Profile {mode.id.toUpperCase()}_v2.0</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Content Display */}
+                                <div className="w-full lg:w-2/3">
+                                    <div className="relative min-h-[400px]">
+                                        <div className="absolute -top-10 -left-10 text-9xl text-gray-800 opacity-20 font-mono font-bold select-none pointer-events-none">
+                                            {activeMode.id.toUpperCase()}
+                                        </div>
+
+                                        <h2 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">
+                                            {activeMode.title}
+                                        </h2>
+                                        
+                                        <p className="text-xl text-gray-300 leading-relaxed mb-12 whitespace-pre-wrap border-l-2 border-brand-accent pl-6">
+                                            {activeMode.content}
+                                        </p>
+
+                                        {activeMode.id === 'tech' && (
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+                                                {['Unity', 'Wwise', 'Python', 'C#'].map(tech => (
+                                                    <div key={tech} className="bg-gray-900 p-4 rounded text-center border border-gray-800 font-mono text-sm text-brand-accent">
+                                                        {tech}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Skills Radar & Lists */}
+                    <section className="py-24 bg-brand-dark">
+                        <div className="container mx-auto px-6">
+                            <div className="flex flex-col lg:flex-row items-center gap-12">
+                                <div className="w-full lg:w-1/2">
+                                    <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
+                                        <span className="text-brand-accent font-mono">01.</span> Technical Proficiency
+                                    </h2>
+                                    <div className="bg-brand-surface p-6 rounded-2xl border border-gray-800">
+                                        <SkillsRadar />
+                                    </div>
+                                </div>
+                                
+                                <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">AUDIO & ENGINES</h3>
+                                        <ul className="space-y-2">
+                                            {SKILL_LIST.audio.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">DEVELOPMENT</h3>
+                                        <ul className="space-y-2">
+                                            {SKILL_LIST.dev.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">DESIGN & VISUALS</h3>
+                                        <ul className="space-y-2">
+                                            {SKILL_LIST.design.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">GENERAL</h3>
+                                        <ul className="space-y-2">
+                                            {SKILL_LIST.general.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Projects Highlights */}
+                    <section id="projects" className="py-24 bg-brand-surface border-t border-gray-800">
+                        <div className="container mx-auto px-6">
+                            <h2 className="text-3xl font-bold mb-12 flex items-center gap-3">
+                                <span className="text-brand-accent font-mono">02.</span> Selected Works & Capabilities
+                            </h2>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {HIGHLIGHTS.map((project, idx) => (
+                                    <div key={idx} className="group p-8 bg-brand-dark border border-gray-800 hover:border-brand-accent rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <h3 className="text-2xl font-bold text-white group-hover:text-brand-accent transition-colors">{project.title}</h3>
+                                            <span className="text-xs font-mono px-3 py-1 bg-gray-800 rounded-full text-gray-400">{project.role}</span>
+                                        </div>
+                                        <p className="text-gray-400 mb-6 leading-relaxed">
+                                            {project.description}
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {project.tech.map(t => (
+                                                <span key={t} className="text-xs font-mono text-brand-accent/80 bg-brand-accent/10 px-2 py-1 rounded">
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Philosophy Section */}
+                    <section className="py-24 bg-brand-dark overflow-hidden">
+                        <div className="container mx-auto px-6">
+                            <h2 className="text-3xl font-bold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-600">
+                                Core Philosophy
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {PHILOSOPHY.map((item, i) => (
+                                    <div key={i} className="p-6 border border-gray-800 hover:border-gray-600 transition-colors rounded-lg flex flex-col justify-center min-h-[160px]">
+                                        <p className="text-lg font-medium text-white mb-2">"{item.en}"</p>
+                                        {item.cn && <p className="text-sm text-gray-500 font-light font-sans">{item.cn}</p>}
+                                    </div>
+                                ))}
+                                <div className="p-6 bg-brand-accent text-brand-dark rounded-lg flex flex-col justify-center items-center text-center font-bold">
+                                    <p className="text-xl mb-4">Let's build a world that sounds alive.</p>
+                                    <a href={`mailto:${PERSONAL_INFO.email}`} className="px-6 py-2 bg-black text-white rounded-full text-sm hover:opacity-80 transition-opacity">
+                                        Start a Project
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Footer */}
+                    <footer className="py-12 border-t border-gray-900 bg-black text-center">
+                        <div className="container mx-auto px-6">
+                            <h2 className="text-2xl font-bold mb-2 text-white">{PERSONAL_INFO.name}</h2>
+                            <p className="text-gray-500 font-mono text-sm mb-6">Interactive Audio Designer • Developer • Composer</p>
+                            
+                            <div className="flex justify-center gap-6 mb-8">
+                                <a href={`mailto:${PERSONAL_INFO.email}`} className="text-gray-400 hover:text-brand-accent transition-colors">Email</a>
+                                <span className="text-gray-700">|</span>
+                                <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-brand-accent transition-colors">LinkedIn</a>
+                                <span className="text-gray-700">|</span>
+                                <a href={LINKS.github} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-brand-accent transition-colors">GitHub</a>
+                            </div>
+                            
+                            <p className="text-xs text-gray-700 font-mono">
+                                © {new Date().getFullYear()} Mofei Li. Built with React & Tailwind.
+                            </p>
+                        </div>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
