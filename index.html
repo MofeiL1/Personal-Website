@@ -3,589 +3,591 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mofei Li | Interactive Audio Designer</title>
+    <title>Mofei Li | Game Audio & Technical Sound Designer</title>
     
-    <!-- 1. 引入 React 和 ReactDOM (锁定版本) -->
+    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     
-    <!-- 2. 引入 Prop-types (Recharts 依赖) -->
+    <!-- Recharts Dependencies -->
     <script src="https://unpkg.com/prop-types/prop-types.min.js"></script>
-
-    <!-- 3. 引入 Recharts (锁定稳定版本 2.12.0) -->
     <script src="https://unpkg.com/recharts@2.12.0/umd/Recharts.js"></script>
 
-    <!-- 4. 引入 Babel -->
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 5. 引入 Tailwind CSS -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- 字体 -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script>
-      // 全局错误捕获，如果黑屏会弹窗提示
-      window.onerror = function(message, source, lineno, colno, error) {
-        document.getElementById('loading-text').innerHTML = 
-            '<span style="color:red">Error: ' + message + '</span><br><span style="font-size:12px;color:#666">Check console for details. Make sure you have Internet access to load CDNs.</span>';
-      };
-
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Outfit', 'sans-serif'],
+              sans: ['Inter', 'sans-serif'],
               mono: ['Space Grotesk', 'monospace'],
+              display: ['Syncopate', 'sans-serif'],
             },
             colors: {
-              brand: {
-                dark: '#0a0a0a',
-                accent: '#00f2ea',
-                secondary: '#ff0055',
-                surface: '#171717',
+              audio: {
+                bg: '#050505',
+                panel: '#0f0f11',
+                accent: '#00f0ff', // Cyan
+                secondary: '#7000ff', // Purple
+                wave: '#39ff14', // Terminal Green
+                text: '#e0e0e0',
+                muted: '#525252'
               }
             },
             animation: {
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'fadeIn': 'fadeIn 1s ease-out forwards',
+              'spin-slow': 'spin 10s linear infinite',
+              'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'float': 'float 6s ease-in-out infinite',
             },
             keyframes: {
-              fadeIn: {
-                '0%': { opacity: '0', transform: 'translateY(10px)' },
-                '100%': { opacity: '1', transform: 'translateY(0)' },
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' },
               }
             }
           }
         }
       }
     </script>
-    
+
     <style>
-      ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: #0a0a0a; }
-      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #00f2ea; }
-      body { background-color: #0a0a0a; color: #e5e7eb; }
+      body { background-color: #050505; color: #e0e0e0; overflow-x: hidden; }
       
-      /* 加载动画样式 */
-      #loading {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #0a0a0a; color: #00f2ea; display: flex; 
-        justify-content: center; align-items: center; font-family: monospace;
-        z-index: 9999; flex-direction: column;
+      /* Glitch Effect Classes */
+      .glitch-text { position: relative; }
+      .glitch-text::before, .glitch-text::after {
+        content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      }
+      .glitch-text::before { left: 2px; text-shadow: -1px 0 #ff00c1; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim 5s infinite linear alternate-reverse; }
+      .glitch-text::after { left: -2px; text-shadow: -1px 0 #00fff9; clip: rect(44px, 450px, 56px, 0); animation: glitch-anim2 5s infinite linear alternate-reverse; }
+      
+      @keyframes glitch-anim {
+        0% { clip: rect(31px, 9999px, 94px, 0); }
+        4.16% { clip: rect(91px, 9999px, 43px, 0); }
+        8.33% { clip: rect(4px, 9999px, 86px, 0); }
+        100% { clip: rect(67px, 9999px, 3px, 0); }
+      }
+      @keyframes glitch-anim2 {
+        0% { clip: rect(65px, 9999px, 100px, 0); }
+        100% { clip: rect(10px, 9999px, 66px, 0); }
+      }
+
+      /* Custom Scrollbar */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: #050505; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #00f0ff; }
+      
+      .glass-panel {
+        background: rgba(15, 15, 17, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
     </style>
 </head>
-<body class="antialiased selection:bg-brand-accent selection:text-black">
-    
-    <!-- 初始加载界面 (React 挂载后会覆盖这个) -->
-    <div id="root">
-        <div id="loading">
-            <div id="loading-text" class="animate-pulse">INITIALIZING SYSTEM...</div>
-        </div>
-    </div>
+<body>
+    <div id="root"></div>
 
     <script type="text/babel">
-        // 确保所有依赖已加载
-        if (!window.React || !window.Recharts) {
-            throw new Error("External libraries failed to load. Please check your internet connection.");
-        }
-
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
         const { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } = Recharts;
 
-        // --- Constants ---
-        const PERSONAL_INFO = {
+        // --- Data extracted from Resume ---
+        const RESUME_DATA = {
             name: "Mofei Li",
-            chineseName: "李墨非",
-            title: "Interactive Audio Designer",
-            email: "mofei_li@qq.com",
-            location: "Berklee College of Music / Shenzhen",
-            taglines: [
-                "Crafting sound and stories for worlds that don’t exist yet.",
-                "Sounds that respond. Music that adapts. Worlds that breathe.",
-                "The future of storytelling is interactive — and so is the music behind it."
+            title: "Game Audio / Technical Audio",
+            email: "MLi13@Berklee.edu",
+            phone: "+1 (315) 876-7700",
+            location: "Boston, MA",
+            socials: {
+                github: "https://github.com/MofeiL1",
+                linkedin: "https://www.linkedin.com/in/mofei-li",
+                itch: "https://yufpan.itch.io/suger-glider-jump",
+                adobePortfolio: "https://mli13.myportfolio.com/167c5423cb9212"
+            },
+            education: {
+                school: "Berklee College of Music",
+                degree: "Bachelor of Music, Game and Interactive Media Scoring",
+                date: "Anticipated May 2026",
+                details: ["Dean's List (4 semesters)", "Focus: Recording, Mixing, Spatial Audio, Unity + C#, Python"]
+            },
+            skills: [
+                { subject: 'Interactive Audio (Wwise)', A: 95, fullMark: 100 },
+                { subject: 'Unity / C#', A: 85, fullMark: 100 },
+                { subject: 'Composition', A: 90, fullMark: 100 },
+                { subject: 'Sound Design', A: 88, fullMark: 100 },
+                { subject: 'Programming (Py/JS)', A: 80, fullMark: 100 },
+                { subject: 'Implementation', A: 92, fullMark: 100 },
+            ],
+            projects: [
+                {
+                    title: "Original Unity + Wwise Prototype",
+                    role: "Technical Sound Designer / Composer / Conductor",
+                    date: "Spring 2025",
+                    image: "https://placehold.co/600x400/1a1a1a/00f0ff?text=Unity+Prototype", // Placeholder
+                    tech: ["Unity", "C#", "Wwise", "Dynamic Music"],
+                    desc: "A fixed-camera third-person prototype with a complex adaptive music system.",
+                    bullets: [
+                        "Implemented 3 distinct rooms (left, center, right) in Unity with dedicated camera logic.",
+                        "Designed a branching/layered music system that switches combinations based on player location.",
+                        "Conducted and recorded live musicians (3 violins + 2 cellos) for the score.",
+                        "Integrated all assets via Wwise events driven by game-state logic."
+                    ]
+                },
+                {
+                    title: "Sugar Glider Jump",
+                    role: "Sound Designer / Composer / Wwise Implementer",
+                    date: "May - June 2025",
+                    image: "https://placehold.co/600x400/1a1a1a/7000ff?text=Sugar+Glider",
+                    tech: ["Game Jam", "2D Platformer", "Wwise", "Animal Crossing Voice"],
+                    desc: "Collaborative Game Jam project (thatgamecompany x Coreblazer).",
+                    bullets: [
+                        "Owned the entire audio pipeline: Music, SFX, and Implementation.",
+                        "Created an 'Animal Crossing-style' NPC voice system by randomizing syllabic fragments.",
+                        "Recorded original foley and environmental sounds.",
+                        "Shipped a functional prototype within the strict Game Jam timeline."
+                    ]
+                },
+                {
+                    title: "Berklee x USC Collaboration",
+                    role: "Audio Director / Project Manager",
+                    date: "Fall 2025",
+                    image: "https://placehold.co/600x400/1a1a1a/39ff14?text=Audio+Direction",
+                    tech: ["Team Leadership", "Documentation", "Production"],
+                    desc: "Led a team of three composers for a student game project.",
+                    bullets: [
+                        "Created Audio Design Documents defining music/SFX relation to gameplay.",
+                        "Managed schedules, milestones, and communicated with USC producers.",
+                        "Reviewed deliverables for style and technical suitability."
+                    ]
+                },
+                {
+                    title: "Tamago Ensemble Site",
+                    role: "Web Developer / Musician",
+                    date: "Fall 2025",
+                    image: "https://placehold.co/600x400/1a1a1a/ffffff?text=Web+Dev",
+                    tech: ["HTML/JS", "GitHub Pages", "Electric Guitar"],
+                    desc: "Promotional website and live performance for J-pop ensemble.",
+                    bullets: [
+                        "Designed and deployed promotional site using HTML, CSS, JS.",
+                        "Performed Electric Guitar & Vocals in live concert setting."
+                    ]
+                }
             ]
         };
 
-        const LINKS = {
-            portfolio: "https://mli13.myportfolio.com/",
-            github: "https://github.com/MofeiL1",
-            linkedin: "https://www.linkedin.com/in/墨非-李-13283b2b0"
-        };
-
-        const PROFILE_MODES = [
-            {
-                id: 'pro',
-                label: 'Overview',
-                title: 'Game & Interactive Audio Designer',
-                icon: 'briefcase',
-                content: `Hi, I’m Mofei — a Game & Interactive Audio Designer studying at Berklee College of Music. I design adaptive music, spatial sound, and immersive sonic experiences for games, VR, and beyond. I believe audio shouldn’t just decorate a scene — it should drive emotion, react to players, and shape the world itself. I possess a highly sensitive ear (perfect pitch), high-level perfectionism, and extensive project management experience.`
-            },
-            {
-                id: 'tech',
-                label: 'Technical',
-                title: 'Systems & Implementation',
-                icon: 'code',
-                content: `I build sound systems for interactive worlds. Using Wwise, Unity, spatial audio, and audio programming tools, I craft music that evolves and environments that speak. From VR soundscapes to hybrid orchestral-electronic scores, my work sits at the intersection of engineering and imagination. I bridge the gap between musicians and programmers with a deep understanding of C#, Python, and AI integration.`
-            },
-            {
-                id: 'story',
-                label: 'Narrative',
-                title: 'The Invisible Storyteller',
-                icon: 'book',
-                content: `I chase the invisible layer of storytelling: sound. I sculpt emotion from silence, create places with reverberation, and make virtual characters breathe through audio. Wherever new media emerges — I’m there to give it a voice. My primary instrument is the Electric Guitar, bringing a human touch to digital landscapes.`
-            }
-        ];
-
-        const SKILL_DATA = [
-            { subject: 'Interactive Audio', A: 98, fullMark: 100 },
-            { subject: 'Game Dev (Unity/C#)', A: 85, fullMark: 100 },
-            { subject: 'Composition', A: 90, fullMark: 100 },
-            { subject: 'Programming (Py/JS)', A: 80, fullMark: 100 },
-            { subject: 'Visual/UI Design', A: 75, fullMark: 100 },
-            { subject: 'Project Mgmt', A: 88, fullMark: 100 },
-        ];
-
-        const SKILL_LIST = {
-            audio: ["Wwise", "FMOD", "Logic Pro", "Cubase", "Pro Tools", "Spatial Audio", "Synthesizers"],
-            dev: ["Unity", "C#", "Python", "JavaScript", "Swift", "Git", "Docker", "Ollama", "ComfyUI"],
-            design: ["Figma", "Photoshop", "Premiere Pro", "DaVinci Resolve", "UI/UX"],
-            general: ["Project Management", "Bilingual (EN/CN)", "Creative Problem Solving", "Electric Guitar"]
-        };
-
-        const PHILOSOPHY = [
-            { en: "I believe music should participate in the narrative, not just follow it.", cn: "我相信音乐应该参与叙事，而不是跟随叙事。" },
-            { en: "Sound defines space. Space reacts to sound.", cn: "声音可以定义空间。空间也会反应声音。" },
-            { en: "Every player choice is a new soundtrack.", cn: "每一次用户的选择，都是一段新的配乐。" },
-            { en: "Technology is not a limit, but an extension of imagination.", cn: "技术不是限制，而是想象力的延伸。" },
-            { en: "Future media isn't watched — it's entered.", cn: "未来的作品不是观看 —— 而是进入。" }
-        ];
-
-        const HIGHLIGHTS = [
-            {
-                title: "Adaptive & Interactive Music",
-                role: "Composer / Implementer",
-                description: "Composing and implementing dynamic scores driven by gameplay logic. Creating non-linear musical structures that respond to intensity and player states.",
-                tech: ["Wwise", "Vertical Layering", "Horizontal Resequencing"]
-            },
-            {
-                title: "VR & Spatial Audio Design",
-                role: "Sound Designer",
-                description: "Crafting believable environments with binaural, Ambisonics, and object-based techniques. Focusing on depth perception and immersion.",
-                tech: ["Unity", "Oculus SDK", "Ambisonics"]
-            },
-            {
-                title: "Project Management",
-                role: "Audio Producer / PM",
-                description: "Participated in student projects as Audio Producer, and served as Production Manager (Project Management) in Doujin music circles. Skilled in cross-disciplinary communication and scheduling.",
-                tech: ["Agile", "Asset Pipeline", "Team Coordination", "Documentation"]
-            },
-            {
-                title: "Creative Tech & AI",
-                role: "Researcher / Developer",
-                description: "Building tools, prototyping interaction systems, and experimenting with AI to augment creative workflows. Leveraging local LLMs and diffusion models.",
-                tech: ["Python", "Stable Diffusion", "Generative AI"]
-            }
-        ];
-
-        // --- Icons ---
-        const Icons = {
-            Briefcase: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>,
-            Code: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
-            Book: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>,
-            Play: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>,
-            Mail: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>,
-            ChevronDown: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
-            Github: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>,
-            Linkedin: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
-        };
-
         // --- Visualizer Component ---
-        const Visualizer = () => {
+        const AudioVisualizer = () => {
             const canvasRef = useRef(null);
 
             useEffect(() => {
                 const canvas = canvasRef.current;
-                if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                if (!ctx) return;
+                let animationId;
+                let t = 0;
 
-                let animationFrameId;
-                let width = canvas.width = window.innerWidth;
-                let height = canvas.height = 400;
+                const resize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight * 0.6;
+                };
+                window.addEventListener('resize', resize);
+                resize();
 
-                const bars = 60;
-                const barWidth = width / bars;
-                
-                // Simulate audio data
-                const data = new Array(bars).fill(0).map(() => Math.random() * 100);
+                const draw = () => {
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    const cy = h / 2;
 
-                const render = () => {
-                    ctx.clearRect(0, 0, width, height);
-                    ctx.fillStyle = '#0a0a0a'; 
-                    ctx.fillRect(0, 0, width, height);
+                    ctx.fillStyle = '#050505';
+                    ctx.fillRect(0, 0, w, h);
+                    
+                    ctx.strokeStyle = '#111';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    for(let i=0; i<w; i+=40) { ctx.moveTo(i,0); ctx.lineTo(i,h); }
+                    for(let i=0; i<h; i+=40) { ctx.moveTo(0,i); ctx.lineTo(w,i); }
+                    ctx.stroke();
 
-                    for (let i = 0; i < bars; i++) {
-                        const target = Math.random() * (height * 0.5);
-                        data[i] += (target - data[i]) * 0.1;
-
-                        const x = i * barWidth;
-                        const barHeight = data[i];
-                        
-                        const gradient = ctx.createLinearGradient(0, height - barHeight, 0, height);
-                        gradient.addColorStop(0, '#00f2ea'); 
-                        gradient.addColorStop(1, 'rgba(0, 242, 234, 0.1)');
-
-                        ctx.fillStyle = gradient;
-                        
-                        ctx.beginPath();
-                        
-                        // Fallback for browsers that don't support roundRect
-                        if (ctx.roundRect) {
-                            ctx.roundRect(x + 2, height - barHeight - (height * 0.2), barWidth - 4, barHeight, 4);
-                        } else {
-                            ctx.rect(x + 2, height - barHeight - (height * 0.2), barWidth - 4, barHeight);
-                        }
-                        
-                        ctx.fill();
-                        
-                        ctx.globalAlpha = 0.2;
-                        ctx.fillRect(x + 2, height - (height * 0.2), barWidth - 4, barHeight * 0.3);
-                        ctx.globalAlpha = 1.0;
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#00f0ff';
+                    ctx.lineWidth = 2;
+                    for (let x = 0; x < w; x++) {
+                        const y = cy + Math.sin(x * 0.01 + t) * 50 * Math.sin(x * 0.005 + t * 0.5) + Math.sin(x * 0.02) * 10;
+                        ctx.lineTo(x, y);
                     }
+                    ctx.stroke();
 
-                    animationFrameId = window.requestAnimationFrame(render);
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgba(112, 0, 255, 0.5)';
+                    ctx.lineWidth = 2;
+                    for (let x = 0; x < w; x++) {
+                        const y = cy + Math.cos(x * 0.015 - t) * 40 * Math.sin(x * 0.002);
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+
+                    t += 0.05;
+                    animationId = requestAnimationFrame(draw);
                 };
-
-                render();
-
-                const handleResize = () => {
-                    width = canvas.width = window.innerWidth;
-                    height = canvas.height = 400;
-                };
-
-                window.addEventListener('resize', handleResize);
+                draw();
 
                 return () => {
-                    window.cancelAnimationFrame(animationFrameId);
-                    window.removeEventListener('resize', handleResize);
+                    cancelAnimationFrame(animationId);
+                    window.removeEventListener('resize', resize);
                 };
             }, []);
 
-            return (
-                <canvas 
-                    ref={canvasRef} 
-                    className="absolute bottom-0 left-0 w-full h-[50vh] opacity-40 pointer-events-none mix-blend-screen"
-                />
-            );
+            return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-[60vh] opacity-60 pointer-events-none" />;
         };
 
-        // --- SkillsRadar Component ---
-        const SkillsRadar = () => {
-            return (
-                <div className="w-full h-[400px] text-xs font-mono">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={SKILL_DATA}>
-                            <PolarGrid stroke="#333" />
-                            <PolarAngleAxis 
-                                dataKey="subject" 
-                                tick={{ fill: '#9ca3af', fontSize: 12 }} 
-                            />
-                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                            <Radar
-                                name="Skill Level"
-                                dataKey="A"
-                                stroke="#00f2ea"
-                                strokeWidth={3}
-                                fill="#00f2ea"
-                                fillOpacity={0.2}
-                            />
-                            <Tooltip 
-                                contentStyle={{ backgroundColor: '#171717', border: '1px solid #333', color: '#fff' }}
-                                itemStyle={{ color: '#00f2ea' }}
-                            />
-                        </RadarChart>
-                    </ResponsiveContainer>
+        // --- Components ---
+        
+        const Nav = () => (
+            <nav className="fixed top-0 w-full z-50 bg-audio-bg/80 backdrop-blur-md border-b border-white/10">
+                <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-audio-accent rounded-full animate-pulse-fast"></div>
+                        <span className="font-display font-bold text-xl tracking-widest text-white">MOFEI.LI</span>
+                    </div>
+                    <div className="hidden md:flex gap-8 text-sm font-mono text-audio-text">
+                        <a href="#about" className="hover:text-audio-accent transition-colors">/ IDENTITY</a>
+                        <a href="#projects" className="hover:text-audio-accent transition-colors">/ WORKS</a>
+                        <a href="#skills" className="hover:text-audio-accent transition-colors">/ SPECS</a>
+                        <a href="#contact" className="text-audio-accent border border-audio-accent px-4 py-1 rounded hover:bg-audio-accent hover:text-black transition-all">CONNECT</a>
+                    </div>
                 </div>
-            );
-        };
+            </nav>
+        );
 
-        // --- Main App Component ---
-        function App() {
-            const [activeMode, setActiveMode] = useState(PROFILE_MODES[0]);
-            const [scrolled, setScrolled] = useState(false);
-
-            useEffect(() => {
-                const handleScroll = () => {
-                    setScrolled(window.scrollY > 50);
-                };
-                window.addEventListener('scroll', handleScroll);
-                return () => window.removeEventListener('scroll', handleScroll);
-            }, []);
-
-            return (
-                <div className="min-h-screen bg-brand-dark text-gray-200 font-sans">
-                    {/* Navigation */}
-                    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 border-b ${scrolled ? 'bg-brand-dark/90 backdrop-blur-md border-gray-800 py-3' : 'bg-transparent border-transparent py-6'}`}>
-                        <div className="container mx-auto px-6 flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 bg-brand-accent rounded-full animate-pulse-slow"></div>
-                                <span className="font-mono font-bold text-xl tracking-tighter">MOFEI.AUDIO</span>
-                            </div>
-                            <a 
-                                href={`mailto:${PERSONAL_INFO.email}`} 
-                                className="hidden md:flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-full hover:border-brand-accent hover:text-brand-accent transition-colors text-sm font-mono"
-                            >
-                                <Icons.Mail />
-                                <span>CONTACT</span>
-                            </a>
+        const Hero = () => (
+            <section className="relative h-screen flex flex-col justify-center items-center pt-20 overflow-hidden">
+                <AudioVisualizer />
+                <div className="z-10 text-center flex flex-col items-center space-y-6 max-w-4xl px-4">
+                    
+                    {/* PROFILE PIC ADDED HERE */}
+                    <div className="relative group animate-float mb-4">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-audio-accent to-audio-secondary rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
+                        <img 
+                            src="./profile.jpg" 
+                            alt="Mofei Li" 
+                            className="relative w-32 h-32 md:w-48 md:h-48 rounded-xl object-cover border-2 border-white/10 shadow-2xl z-10 bg-gray-900"
+                            onError={(e) => {
+                                e.target.style.display='none';
+                                e.target.nextSibling.style.display='flex';
+                            }}
+                        />
+                        {/* Fallback if image not found */}
+                        <div className="hidden absolute top-0 left-0 w-32 h-32 md:w-48 md:h-48 rounded-xl border-2 border-audio-accent bg-gray-900 items-center justify-center text-audio-accent font-display text-4xl font-bold z-10">
+                            ML
                         </div>
-                    </nav>
+                    </div>
 
-                    {/* Hero Section */}
-                    <header className="relative h-screen flex flex-col justify-center items-center overflow-hidden pt-20">
-                        <Visualizer />
+                    <p className="font-mono text-audio-accent tracking-[0.3em] text-sm animate-fadeIn">AUDIO // INTERACTION // CODE</p>
+                    <h1 className="text-5xl md:text-8xl font-display font-bold text-white leading-tight glitch-text" data-text={RESUME_DATA.name.toUpperCase()}>
+                        {RESUME_DATA.name.toUpperCase()}
+                    </h1>
+                    <div className="h-1 w-24 bg-audio-secondary mx-auto"></div>
+                    <p className="text-xl md:text-2xl font-light text-gray-400 max-w-2xl mx-auto">
+                        Designing adaptive soundscapes and interactive systems for the next generation of games.
+                    </p>
+                    <div className="flex flex-col md:flex-row gap-4 justify-center pt-8">
+                         <a href="#projects" className="px-8 py-3 bg-white text-black font-bold font-mono hover:bg-audio-accent transition-colors">
+                            VIEW PROJECTS
+                        </a>
+                        <a href={RESUME_DATA.socials.github} target="_blank" className="px-8 py-3 border border-gray-600 text-gray-300 font-mono hover:border-white hover:text-white transition-colors">
+                            GITHUB_PROFILE
+                        </a>
+                    </div>
+                </div>
+                
+                <div className="absolute bottom-10 flex flex-col items-center gap-2 text-gray-600 font-mono text-xs animate-bounce">
+                    <span>SCROLL TO INITIALIZE</span>
+                    <i className="fa-solid fa-chevron-down"></i>
+                </div>
+            </section>
+        );
+
+        const About = () => (
+            <section id="about" className="py-24 bg-audio-panel border-t border-white/5">
+                <div className="container mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <h2 className="text-4xl font-display font-bold mb-8 flex items-end gap-4">
+                            01 <span className="text-lg font-mono text-audio-accent mb-2">/ IDENTITY</span>
+                        </h2>
+                        <div className="space-y-6 text-gray-300 leading-relaxed text-lg">
+                            <p>
+                                I am a <strong className="text-white">Technical Audio Designer</strong> and <strong className="text-white">Composer</strong> bridging the gap between musical artistry and game engine logic.
+                            </p>
+                            <p>
+                                Currently completing my degree at <strong className="text-audio-accent">Berklee College of Music</strong>, I specialize in building adaptive music systems in <strong className="text-white">Wwise</strong> and scripting gameplay logic in <strong className="text-white">Unity (C#)</strong>.
+                            </p>
+                            <p>
+                                Whether it's conducting a live string ensemble for a game score or writing Python scripts to automate audio implementation, I thrive at the intersection of creative expression and technical problem-solving.
+                            </p>
+                        </div>
                         
-                        <div className="z-10 text-center px-6 max-w-5xl flex flex-col items-center">
-                            
-                            <div className="mb-8 relative group cursor-pointer">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-brand-accent to-brand-secondary opacity-30 blur-lg rounded-2xl group-hover:opacity-60 transition duration-500"></div>
-                                <img 
-                                    src="./profile.jpg" 
-                                    alt="Mofei Li" 
-                                    onError={(e) => {
-                                        e.target.style.display='none'; 
-                                        const fallback = document.createElement('div');
-                                        fallback.className = "w-40 h-40 bg-gray-800 rounded-2xl flex items-center justify-center border-2 border-brand-accent text-brand-accent font-mono font-bold";
-                                        fallback.innerText = "NO IMG";
-                                        e.target.parentElement.appendChild(fallback);
-                                    }}
-                                    className="relative w-40 h-40 md:w-56 md:h-56 rounded-2xl object-cover border-4 border-black shadow-2xl grayscale hover:grayscale-0 transition-all duration-500 ease-out"
-                                />
+                        <div className="mt-12 p-6 border border-gray-800 bg-black/40 rounded-lg">
+                            <h3 className="font-mono text-audio-secondary mb-4 flex items-center gap-2">
+                                <i className="fa-solid fa-graduation-cap"></i> EDUCATION
+                            </h3>
+                            <div className="flex justify-between items-start mb-2">
+                                <span className="font-bold text-white">{RESUME_DATA.education.school}</span>
+                                <span className="font-mono text-xs text-gray-500">{RESUME_DATA.education.date}</span>
                             </div>
-
-                            <p className="text-brand-accent font-mono mb-4 tracking-widest text-sm md:text-base uppercase opacity-0 animate-[fadeIn_1s_ease-out_forwards]">
-                                {PERSONAL_INFO.location}
-                            </p>
-                            <h1 className="text-5xl md:text-8xl font-bold mb-6 tracking-tight leading-tight mix-blend-difference">
-                                {PERSONAL_INFO.name}
-                                <span className="block text-gray-500 text-3xl md:text-5xl mt-2 font-light">
-                                    {PERSONAL_INFO.chineseName}
-                                </span>
-                            </h1>
-                            <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto font-light leading-relaxed mb-8">
-                                {PERSONAL_INFO.taglines[0]}
-                            </p>
-                            
-                            <div className="flex flex-col md:flex-row gap-4 justify-center items-center">
-                                <a 
-                                    href={LINKS.portfolio}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="px-8 py-3 bg-brand-accent text-black font-bold rounded-full hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(0,242,234,0.3)]"
-                                >
-                                    <Icons.Play />
-                                    PORTFOLIO
-                                </a>
-                                <a 
-                                    href="#projects" 
-                                    className="px-8 py-3 border border-gray-700 text-gray-300 font-bold rounded-full hover:border-white hover:text-white transition-colors"
-                                >
-                                    CAPABILITIES
-                                </a>
-                            </div>
-
-                            <div className="mt-8 flex gap-6 text-gray-500">
-                                <a href={LINKS.github} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors p-2"><Icons.Github /></a>
-                                <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors p-2"><Icons.Linkedin /></a>
-                            </div>
+                            <p className="text-sm text-gray-400 mb-2">{RESUME_DATA.education.degree}</p>
+                            <ul className="text-xs text-gray-500 font-mono list-disc list-inside">
+                                {RESUME_DATA.education.details.map((d, i) => <li key={i}>{d}</li>)}
+                            </ul>
                         </div>
-
-                        <div className="absolute bottom-10 animate-bounce text-gray-500">
-                            <Icons.ChevronDown />
-                        </div>
-                    </header>
-
-                    {/* About / Identity Selector */}
-                    <section className="py-24 bg-brand-surface relative border-t border-gray-800">
-                        <div className="container mx-auto px-6">
-                            <div className="flex flex-col lg:flex-row gap-16 items-start">
-                                
-                                {/* Mode Selector */}
-                                <div className="w-full lg:w-1/3 space-y-4 sticky top-32">
-                                    <h2 className="text-sm font-mono text-gray-500 mb-6 uppercase tracking-widest">Select Identity Profile</h2>
-                                    {PROFILE_MODES.map((mode) => (
-                                        <button
-                                            key={mode.id}
-                                            onClick={() => setActiveMode(mode)}
-                                            className={`w-full text-left p-6 rounded-xl border transition-all duration-300 group flex items-center gap-4 ${
-                                                activeMode.id === mode.id 
-                                                    ? 'bg-brand-dark border-brand-accent shadow-[0_0_30px_rgba(0,242,234,0.1)]' 
-                                                    : 'bg-transparent border-gray-800 hover:border-gray-600'
-                                            }`}
-                                        >
-                                            <div className={`p-3 rounded-full ${activeMode.id === mode.id ? 'bg-brand-accent text-black' : 'bg-gray-800 text-gray-400'}`}>
-                                                {mode.icon === 'briefcase' && <Icons.Briefcase />}
-                                                {mode.icon === 'code' && <Icons.Code />}
-                                                {mode.icon === 'book' && <Icons.Book />}
-                                            </div>
-                                            <div>
-                                                <h3 className={`font-bold ${activeMode.id === mode.id ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>{mode.label}</h3>
-                                                <p className="text-xs text-gray-500 font-mono mt-1">Profile {mode.id.toUpperCase()}_v2.0</p>
-                                            </div>
-                                        </button>
-                                    ))}
-                                </div>
-
-                                {/* Content Display */}
-                                <div className="w-full lg:w-2/3">
-                                    <div className="relative min-h-[400px]">
-                                        <div className="absolute -top-10 -left-10 text-9xl text-gray-800 opacity-20 font-mono font-bold select-none pointer-events-none">
-                                            {activeMode.id.toUpperCase()}
-                                        </div>
-
-                                        <h2 className="text-4xl font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500">
-                                            {activeMode.title}
-                                        </h2>
-                                        
-                                        <p className="text-xl text-gray-300 leading-relaxed mb-12 whitespace-pre-wrap border-l-2 border-brand-accent pl-6">
-                                            {activeMode.content}
-                                        </p>
-
-                                        {activeMode.id === 'tech' && (
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                                                {['Unity', 'Wwise', 'Python', 'C#'].map(tech => (
-                                                    <div key={tech} className="bg-gray-900 p-4 rounded text-center border border-gray-800 font-mono text-sm text-brand-accent">
-                                                        {tech}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Skills Radar & Lists */}
-                    <section className="py-24 bg-brand-dark">
-                        <div className="container mx-auto px-6">
-                            <div className="flex flex-col lg:flex-row items-center gap-12">
-                                <div className="w-full lg:w-1/2">
-                                    <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-                                        <span className="text-brand-accent font-mono">01.</span> Technical Proficiency
-                                    </h2>
-                                    <div className="bg-brand-surface p-6 rounded-2xl border border-gray-800">
-                                        <SkillsRadar />
-                                    </div>
-                                </div>
-                                
-                                <div className="w-full lg:w-1/2 grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div>
-                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">AUDIO & ENGINES</h3>
-                                        <ul className="space-y-2">
-                                            {SKILL_LIST.audio.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
-                                        </ul>
+                    </div>
+                    
+                    <div className="relative">
+                        <div className="absolute -inset-4 bg-gradient-to-tr from-audio-accent to-audio-secondary opacity-20 blur-2xl rounded-full"></div>
+                        <div className="relative bg-audio-bg border border-gray-800 p-8 rounded-xl shadow-2xl">
+                             <h3 className="font-mono text-sm text-gray-500 mb-6 border-b border-gray-800 pb-2">CORE_COMPETENCIES.exe</h3>
+                             <div className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gray-900 rounded flex items-center justify-center text-audio-accent text-xl">
+                                        <i className="fa-brands fa-unity"></i>
                                     </div>
                                     <div>
-                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">DEVELOPMENT</h3>
-                                        <ul className="space-y-2">
-                                            {SKILL_LIST.dev.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">DESIGN & VISUALS</h3>
-                                        <ul className="space-y-2">
-                                            {SKILL_LIST.design.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
-                                        </ul>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-brand-accent font-mono mb-4 text-sm border-b border-gray-800 pb-2">GENERAL</h3>
-                                        <ul className="space-y-2">
-                                            {SKILL_LIST.general.map(s => <li key={s} className="text-gray-400 hover:text-white transition-colors">• {s}</li>)}
-                                        </ul>
+                                        <h4 className="font-bold text-white">Game Engines</h4>
+                                        <p className="text-xs text-gray-500 font-mono">Unity (C# Scripting), Unreal Basics</p>
                                     </div>
                                 </div>
-                            </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gray-900 rounded flex items-center justify-center text-audio-secondary text-xl">
+                                        <i className="fa-solid fa-layer-group"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">Middleware</h4>
+                                        <p className="text-xs text-gray-500 font-mono">Wwise (Advanced), FMOD</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gray-900 rounded flex items-center justify-center text-audio-wave text-xl">
+                                        <i className="fa-solid fa-music"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">Audio Production</h4>
+                                        <p className="text-xs text-gray-500 font-mono">Logic Pro, Cubase, Field Recording</p>
+                                    </div>
+                                </div>
+                                 <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-gray-900 rounded flex items-center justify-center text-white text-xl">
+                                        <i className="fa-solid fa-code"></i>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">Programming</h4>
+                                        <p className="text-xs text-gray-500 font-mono">C#, Python, JavaScript, Git</p>
+                                    </div>
+                                </div>
+                             </div>
                         </div>
-                    </section>
+                    </div>
+                </div>
+            </section>
+        );
 
-                    {/* Projects Highlights */}
-                    <section id="projects" className="py-24 bg-brand-surface border-t border-gray-800">
-                        <div className="container mx-auto px-6">
-                            <h2 className="text-3xl font-bold mb-12 flex items-center gap-3">
-                                <span className="text-brand-accent font-mono">02.</span> Selected Works & Capabilities
+        const ProjectCard = ({ project }) => (
+            <div className="group relative bg-audio-bg border border-gray-800 hover:border-audio-accent transition-colors duration-300 overflow-hidden rounded-xl h-full flex flex-col">
+                <div className="relative h-48 overflow-hidden bg-gray-900 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-audio-accent/10 group-hover:bg-audio-accent/5 transition-colors z-10"></div>
+                    <div className="w-full h-full opacity-30" style={{backgroundImage: 'radial-gradient(#333 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+                    <div className="z-20 font-display font-bold text-2xl text-gray-700 group-hover:text-white transition-colors text-center px-4">{project.title.split(' ')[0]}</div>
+                </div>
+                
+                <div className="p-6 flex-1 flex flex-col">
+                    <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl font-bold text-white group-hover:text-audio-accent transition-colors">{project.title}</h3>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="text-xs font-mono px-2 py-1 bg-audio-secondary/20 text-audio-secondary rounded border border-audio-secondary/30">
+                            {project.role}
+                        </span>
+                        <span className="text-xs font-mono px-2 py-1 bg-gray-800 text-gray-400 rounded">
+                            {project.date}
+                        </span>
+                    </div>
+
+                    <p className="text-gray-400 text-sm mb-6 flex-1">
+                        {project.desc}
+                    </p>
+
+                    <div className="space-y-2 mb-6">
+                         {project.bullets.map((bullet, i) => (
+                             <div key={i} className="flex gap-2 text-xs text-gray-500">
+                                <span className="text-audio-accent">➜</span>
+                                <span>{bullet}</span>
+                             </div>
+                         ))}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-800">
+                        {project.tech.map(t => (
+                            <span key={t} className="text-[10px] font-mono uppercase tracking-wider text-gray-500">#{t}</span>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+
+        const Projects = () => (
+            <section id="projects" className="py-24 bg-audio-bg relative">
+                <div className="container mx-auto px-6">
+                    <h2 className="text-4xl font-display font-bold mb-12 flex items-end gap-4">
+                        02 <span className="text-lg font-mono text-audio-secondary mb-2">/ SELECTED WORKS</span>
+                    </h2>
+                    
+                    <div className="grid md:grid-cols-2 gap-8">
+                        {RESUME_DATA.projects.map((p, i) => (
+                            <ProjectCard key={i} project={p} />
+                        ))}
+                    </div>
+
+                    {/* NEW BUTTON FOR ADOBE PORTFOLIO */}
+                    <div className="mt-16 flex justify-center">
+                        <a 
+                            href={RESUME_DATA.socials.adobePortfolio} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-gray-900 border border-audio-secondary/50 rounded-lg hover:border-audio-accent hover:bg-black transition-all duration-300"
+                        >
+                            <div className="absolute inset-0 bg-audio-secondary/10 blur-lg group-hover:bg-audio-accent/20 transition-colors"></div>
+                            <span className="relative text-2xl text-audio-secondary group-hover:text-audio-accent transition-colors">
+                                <i className="fa-brands fa-youtube"></i>
+                            </span>
+                            <div className="relative text-left">
+                                <div className="font-display font-bold text-white group-hover:text-audio-accent tracking-wider text-lg">
+                                    VIEW FULL ARCHIVE & DEMOS
+                                </div>
+                                <div className="text-xs font-mono text-gray-500 group-hover:text-gray-400">
+                                    LINEAR MEDIA / SCROLLING SCORES / LIVE RECORDINGS
+                                </div>
+                            </div>
+                            <i className="fa-solid fa-arrow-right-long text-gray-500 group-hover:text-white transition-colors relative ml-2"></i>
+                        </a>
+                    </div>
+
+                </div>
+            </section>
+        );
+
+        const Skills = () => (
+            <section id="skills" className="py-24 bg-audio-panel border-y border-white/5">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-col lg:flex-row items-center gap-16">
+                        <div className="w-full lg:w-1/2">
+                            <h2 className="text-4xl font-display font-bold mb-8 flex items-end gap-4">
+                                03 <span className="text-lg font-mono text-audio-wave mb-2">/ TECH SPECS</span>
                             </h2>
+                            <p className="text-gray-400 mb-8 max-w-lg">
+                                My skillset is a hybrid of creative audio production and technical implementation. I use code to create systems that make sound responsive and alive.
+                            </p>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {HIGHLIGHTS.map((project, idx) => (
-                                    <div key={idx} className="group p-8 bg-brand-dark border border-gray-800 hover:border-brand-accent rounded-xl transition-all duration-300 hover:transform hover:-translate-y-1">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <h3 className="text-2xl font-bold text-white group-hover:text-brand-accent transition-colors">{project.title}</h3>
-                                            <span className="text-xs font-mono px-3 py-1 bg-gray-800 rounded-full text-gray-400">{project.role}</span>
-                                        </div>
-                                        <p className="text-gray-400 mb-6 leading-relaxed">
-                                            {project.description}
-                                        </p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {project.tech.map(t => (
-                                                <span key={t} className="text-xs font-mono text-brand-accent/80 bg-brand-accent/10 px-2 py-1 rounded">
-                                                    {t}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Philosophy Section */}
-                    <section className="py-24 bg-brand-dark overflow-hidden">
-                        <div className="container mx-auto px-6">
-                            <h2 className="text-3xl font-bold mb-12 text-center text-transparent bg-clip-text bg-gradient-to-r from-gray-200 to-gray-600">
-                                Core Philosophy
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {PHILOSOPHY.map((item, i) => (
-                                    <div key={i} className="p-6 border border-gray-800 hover:border-gray-600 transition-colors rounded-lg flex flex-col justify-center min-h-[160px]">
-                                        <p className="text-lg font-medium text-white mb-2">"{item.en}"</p>
-                                        {item.cn && <p className="text-sm text-gray-500 font-light font-sans">{item.cn}</p>}
-                                    </div>
-                                ))}
-                                <div className="p-6 bg-brand-accent text-brand-dark rounded-lg flex flex-col justify-center items-center text-center font-bold">
-                                    <p className="text-xl mb-4">Let's build a world that sounds alive.</p>
-                                    <a href={`mailto:${PERSONAL_INFO.email}`} className="px-6 py-2 bg-black text-white rounded-full text-sm hover:opacity-80 transition-opacity">
-                                        Start a Project
-                                    </a>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-4 bg-black/50 border border-gray-800 rounded">
+                                    <h4 className="font-mono text-audio-accent mb-2">LANGUAGES</h4>
+                                    <ul className="text-sm text-gray-300 space-y-1">
+                                        <li>C#</li>
+                                        <li>Python</li>
+                                        <li>JavaScript</li>
+                                        <li>HTML/CSS</li>
+                                    </ul>
+                                </div>
+                                <div className="p-4 bg-black/50 border border-gray-800 rounded">
+                                    <h4 className="font-mono text-audio-secondary mb-2">SOFTWARE</h4>
+                                    <ul className="text-sm text-gray-300 space-y-1">
+                                        <li>Unity 3D</li>
+                                        <li>Wwise</li>
+                                        <li>Logic Pro / Cubase</li>
+                                        <li>GitHub / Git</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                    </section>
 
-                    {/* Footer */}
-                    <footer className="py-12 border-t border-gray-900 bg-black text-center">
-                        <div className="container mx-auto px-6">
-                            <h2 className="text-2xl font-bold mb-2 text-white">{PERSONAL_INFO.name}</h2>
-                            <p className="text-gray-500 font-mono text-sm mb-6">Interactive Audio Designer • Developer • Composer</p>
-                            
-                            <div className="flex justify-center gap-6 mb-8">
-                                <a href={`mailto:${PERSONAL_INFO.email}`} className="text-gray-400 hover:text-brand-accent transition-colors">Email</a>
-                                <span className="text-gray-700">|</span>
-                                <a href={LINKS.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-brand-accent transition-colors">LinkedIn</a>
-                                <span className="text-gray-700">|</span>
-                                <a href={LINKS.github} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-brand-accent transition-colors">GitHub</a>
+                        <div className="w-full lg:w-1/2 h-[400px] bg-black/20 rounded-xl border border-gray-800 relative">
+                             {/* Radar Chart */}
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={RESUME_DATA.skills}>
+                                    <PolarGrid stroke="#333" />
+                                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 12, fontFamily: 'monospace' }} />
+                                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                    <Radar
+                                        name="Proficiency"
+                                        dataKey="A"
+                                        stroke="#00f0ff"
+                                        strokeWidth={2}
+                                        fill="#00f0ff"
+                                        fillOpacity={0.2}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: '#050505', border: '1px solid #333', color: '#fff' }}
+                                        itemStyle={{ color: '#00f0ff' }}
+                                    />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                            <div className="absolute bottom-4 right-4 font-mono text-xs text-gray-600">
+                                DATA_VISUALIZATION_V1.0
                             </div>
-                            
-                            <p className="text-xs text-gray-700 font-mono">
-                                © {new Date().getFullYear()} Mofei Li. Built with React & Tailwind.
-                            </p>
                         </div>
-                    </footer>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const Contact = () => (
+            <footer id="contact" className="py-20 bg-black text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-audio-accent to-transparent opacity-50"></div>
+                
+                <div className="container mx-auto px-6 relative z-10">
+                    <h2 className="text-3xl font-display font-bold text-white mb-8">READY TO COLLABORATE?</h2>
+                    <p className="text-gray-400 mb-12 max-w-xl mx-auto">
+                        Currently open for Spring 2026 opportunities in Game Audio and Technical Sound Design.
+                    </p>
+                    
+                    <a href={`mailto:${RESUME_DATA.email}`} className="inline-block px-10 py-4 bg-audio-accent text-black font-bold text-lg rounded hover:bg-white transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(0,240,255,0.3)]">
+                        SEND TRANSMISSION
+                    </a>
+
+                    <div className="mt-16 flex justify-center gap-8 text-2xl text-gray-500">
+                        <a href={RESUME_DATA.socials.linkedin} className="hover:text-white transition-colors"><i className="fa-brands fa-linkedin"></i></a>
+                        <a href={RESUME_DATA.socials.github} className="hover:text-white transition-colors"><i className="fa-brands fa-github"></i></a>
+                        <a href={`mailto:${RESUME_DATA.email}`} className="hover:text-white transition-colors"><i className="fa-solid fa-envelope"></i></a>
+                    </div>
+
+                    <div className="mt-12 text-xs font-mono text-gray-700">
+                        <p>© {new Date().getFullYear()} MOFEI LI. BUILT WITH REACT + TAILWIND.</p>
+                        <p className="mt-2">BOSTON, MA // SHENZHEN, CN</p>
+                    </div>
+                </div>
+            </footer>
+        );
+
+        function App() {
+            return (
+                <div className="bg-audio-bg min-h-screen text-gray-200 selection:bg-audio-accent selection:text-black">
+                    <Nav />
+                    <Hero />
+                    <About />
+                    <Projects />
+                    <Skills />
+                    <Contact />
                 </div>
             );
         }
