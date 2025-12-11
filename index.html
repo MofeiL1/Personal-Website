@@ -255,6 +255,77 @@
             return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-[60vh] opacity-60 pointer-events-none" />;
         };
 
+        // --- Interactive Profile Component (New) ---
+        const InteractiveProfile = () => {
+            const [style, setStyle] = useState({ transform: 'scale(1) translate(0px, 0px)' });
+            const [isHovering, setIsHovering] = useState(false);
+
+            const handleMouseMove = (e) => {
+                const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - left;
+                const y = e.clientY - top;
+                
+                // Calculate position relative to center (-1 to 1)
+                const xPct = (x / width - 0.5) * 2; 
+                const yPct = (y / height - 0.5) * 2;
+
+                // Movement logic:
+                // When zoomed in (scale 2), we want to be able to pan around.
+                // "Follow mouse direction" - moving mouse right moves image right (revealing left side content usually, 
+                // but since it's an abstract profile, moving the image WITH the mouse creates a 'floating' feel).
+                // Factor 15px gives a subtle elastic parallax.
+                const moveX = xPct * 15; 
+                const moveY = yPct * 15;
+
+                setStyle({
+                    transform: `scale(2) translate(${moveX}px, ${moveY}px)`
+                });
+            };
+
+            const handleMouseEnter = () => setIsHovering(true);
+
+            const handleMouseLeave = () => {
+                setIsHovering(false);
+                setStyle({ transform: 'scale(1) translate(0px, 0px)' });
+            };
+
+            return (
+                <div className="relative group animate-float mb-6 z-20">
+                    {/* Glowing Background Blur */}
+                    <div className={`absolute -inset-1 bg-gradient-to-r from-audio-accent to-audio-secondary rounded-xl blur opacity-30 transition duration-500 ${isHovering ? 'opacity-60 blur-md' : ''}`}></div>
+                    
+                    {/* Interactive Container */}
+                    <div 
+                        className="relative w-32 h-32 md:w-48 md:h-48 rounded-xl overflow-hidden border-2 border-white/10 shadow-2xl bg-gray-900 cursor-crosshair"
+                        onMouseMove={handleMouseMove}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    >
+                        <img 
+                            src="./profile.jpg" 
+                            alt="Mofei Li" 
+                            className="w-full h-full object-cover transition-transform duration-200 ease-out will-change-transform" 
+                            style={style}
+                            onError={(e) => {
+                                e.target.style.display='none';
+                                e.target.nextSibling.style.display='flex';
+                            }}
+                        />
+                        {/* Fallback */}
+                        <div className="hidden absolute inset-0 w-full h-full bg-gray-900 items-center justify-center flex-col gap-2">
+                             <span className="text-audio-accent font-display text-4xl font-bold">ML</span>
+                             <span className="text-gray-600 text-[10px] font-mono">NO SIGNAL</span>
+                        </div>
+
+                        {/* Overlay Grid (Visible only on hover for extra 'Tech' feel) */}
+                        <div className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${isHovering ? 'opacity-30' : 'opacity-0'}`} 
+                             style={{backgroundImage: 'linear-gradient(rgba(0, 240, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.2) 1px, transparent 1px)', backgroundSize: '20px 20px'}}>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- Components ---
         
         const Nav = () => (
@@ -279,23 +350,8 @@
                 <AudioVisualizer />
                 <div className="z-10 text-center flex flex-col items-center space-y-6 max-w-4xl px-4">
                     
-                    {/* PROFILE PIC ADDED HERE */}
-                    <div className="relative group animate-float mb-4">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-audio-accent to-audio-secondary rounded-xl blur opacity-30 group-hover:opacity-60 transition duration-1000 group-hover:duration-200"></div>
-                        <img 
-                            src="./profile.jpg" 
-                            alt="Mofei Li" 
-                            className="relative w-32 h-32 md:w-48 md:h-48 rounded-xl object-cover border-2 border-white/10 shadow-2xl z-10 bg-gray-900"
-                            onError={(e) => {
-                                e.target.style.display='none';
-                                e.target.nextSibling.style.display='flex';
-                            }}
-                        />
-                        {/* Fallback if image not found */}
-                        <div className="hidden absolute top-0 left-0 w-32 h-32 md:w-48 md:h-48 rounded-xl border-2 border-audio-accent bg-gray-900 items-center justify-center text-audio-accent font-display text-4xl font-bold z-10">
-                            ML
-                        </div>
-                    </div>
+                    {/* REPLACED OLD IMAGE LOGIC WITH NEW COMPONENT */}
+                    <InteractiveProfile />
 
                     <p className="font-mono text-audio-accent tracking-[0.3em] text-sm animate-fadeIn">AUDIO // INTERACTION // CODE</p>
                     <h1 className="text-5xl md:text-8xl font-display font-bold text-white leading-tight glitch-text" data-text={RESUME_DATA.name.toUpperCase()}>
